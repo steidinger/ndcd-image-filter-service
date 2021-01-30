@@ -1,6 +1,6 @@
 import express from 'express';
 import bodyParser from 'body-parser';
-import {filterImageFromURL, deleteLocalFiles} from './util/util';
+import {filterImageFromURL, deleteLocalFiles, INVALID_IMAGE_URL} from './util/util';
 
 (async () => {
 
@@ -16,14 +16,28 @@ import {filterImageFromURL, deleteLocalFiles} from './util/util';
   // endpoint to filter an image from a public url.
   app.get( "/filteredimage", async ( req, res ) => {
     if (!req.query.image_url) {
-      res.status(400).send("you must include an image_url in your request");
+      return res.status(400).send("you must include an image_url in your request");
     }
-    const imageFile = await filterImageFromURL( req.query.image_url );
-    res.sendFile( imageFile, () => {
-      if ( imageFile ) {
-        deleteLocalFiles( [imageFile] );
+    const {image_url} = req.query;
+    if (!/^http(s?):/.exec(image_url)) {
+      return res.status(400).send("only http and https are supported");
+    }
+    try {
+      const imageFile = await filterImageFromURL( req.query.image_url );
+      res.sendFile( imageFile, () => {
+        if ( imageFile ) {
+          deleteLocalFiles( [imageFile] );
+        }
+      });
+    } catch (error) {
+      if (error === INVALID_IMAGE_URL) {
+        res.status(400).send(`Could not read image from URL ${req.query.image_url}`);
       }
-    });
+      else {
+        console.error(`Could not convert image for URL ${req.query.image_url}`, error);
+        res.sendStatus(500);
+      }
+    }
   })
 
   
