@@ -14,7 +14,7 @@ import {filterImageFromURL, deleteLocalFiles, INVALID_IMAGE_URL} from './util/ut
   app.use(bodyParser.json());
 
   // endpoint to filter an image from a public url.
-  app.get( "/filteredimage", async ( req, res ) => {
+  app.get( "/filteredimage", async ( req: express.Request, res: express.Response ) => {
     if (!req.query.image_url) {
       return res.status(400).send("you must include an image_url in your request");
     }
@@ -43,7 +43,7 @@ import {filterImageFromURL, deleteLocalFiles, INVALID_IMAGE_URL} from './util/ut
   
   // Root Endpoint
   // Displays a simple message to the user
-  app.get( "/", async ( req, res ) => {
+  app.get( "/", async ( req: express.Request, res: express.Response ) => {
     res.send("try GET /filteredimage?image_url={{}}")
   } );
   
